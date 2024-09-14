@@ -1,0 +1,24 @@
+{
+  "name": "backend_polling",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sharma-10-personal/backend_polling.git"
+  },
+  "author": "Sharma S S",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sharma-10-personal/backend_polling/issues"
+  },
+  "homepage": "https://github.com/sharma-10-personal/backend_polling#readme",
+  "dependencies": {
+    "express": "^4.21.0",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
+  }
+}
