@@ -24,6 +24,7 @@ app.get("/", (req, res) => {
 let activePoll = null;
 let pollResponses = [];
 let totalStudents = 0; // To track the total students connected
+let pollEndTime = null; // To track when the poll should end
 
 // Socket.IO connection handler
 io.on("connection", (socket) => {
@@ -41,10 +42,16 @@ io.on("connection", (socket) => {
     if (!activePoll) {
       activePoll = pollData;
       pollResponses = [];
+      pollEndTime = Date.now() + pollData.timerDuration * 1000; // Calculate end time
       console.log("New Poll Created:", pollData);
 
       // Broadcast the poll to all students
       io.emit("new_poll", activePoll);
+
+      // Automatically close the poll after the specified duration
+      setTimeout(() => {
+        closePoll();
+      }, pollData.timerDuration * 1000);
     } else {
       socket.emit("error", "A poll is already active.");
     }
@@ -53,15 +60,19 @@ io.on("connection", (socket) => {
   // Student submits an answer
   socket.on("submit_answer", (answerData) => {
     if (activePoll) {
-      pollResponses.push(answerData);
-      console.log(`Received answer from ${socket.studentName}:`, answerData);
+      if (Date.now() < pollEndTime) {
+        pollResponses.push(answerData);
+        console.log(`Received answer from ${socket.studentName}:`, answerData);
 
-      // Broadcast current poll results
-      io.emit("poll_results", calculatePollResults());
+        // Broadcast current poll results
+        io.emit("poll_results", calculatePollResults());
 
-      // If all students have answered, close the poll
-      if (pollResponses.length === totalStudents) {
-        closePoll();
+        // If all students have answered, close the poll
+        if (pollResponses.length === totalStudents) {
+          closePoll();
+        }
+      } else {
+        socket.emit("error", "The poll is closed. You cannot submit answers.");
       }
     } else {
       socket.emit("error", "No active poll to answer.");
@@ -100,10 +111,11 @@ function calculatePollResults() {
   return { poll: activePoll, results: resultsWithPercentages };
 }
 
-// Close the poll when all students have answered
+// Close the poll when it should be closed
 function closePoll() {
   console.log("Poll closed:", activePoll);
   activePoll = null;
+  pollResponses = []; // Clear responses
   io.emit("poll_closed", "Poll is closed. You can view results.");
 }
 
