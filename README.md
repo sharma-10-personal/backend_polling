@@ -11,3 +11,5 @@ Steps to run:
 2. add .env file
 
 3. npm start 
+
+node js version = 16.6
